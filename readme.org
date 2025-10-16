@@ -1,0 +1,12 @@
+* THE most realistic car simulator ever made
+-----
+
+Overview:
++ WASD to move (no rotation yet, we're getting to it)
++ The "SPEED" number is 100s of pixels per second
+
++ Feel free to configure the size, but do not change the +164.
+    - also keep it square
+
+Challenge:
+- Max out the top bar
