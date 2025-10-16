@@ -10,3 +10,4 @@ Overview:
 
 Challenge:
 - Max out the top bar
+- Get 30 SPEED
