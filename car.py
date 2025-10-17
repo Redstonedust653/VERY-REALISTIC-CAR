@@ -1,5 +1,6 @@
 import pygame
 from pygame import Vector2
+import math
 mode = '' #input('MODE')
 
 pygame.init()
@@ -11,23 +12,37 @@ speed_font = pygame.font.SysFont("Fira Sans", 64, bold=True, italic=True)
 
 
 class Car:
-    def __init__(self,mode,startpos:Vector2) -> None:
+    def __init__(self,mode,startpos:Vector2,rotation:int=0) -> None:
         self.mode = mode
         self.pos = startpos
         self.vel = Vector2(0,0)
         self.acc = Vector2(0,0)
         self.width = 15
-        self.length = 30
-        self.rotation = 90
-        self.thrust = 300
+        self.length = 40
+        self.rotation = rotation
+        self.thrust = 500
+
+    def forward(self) -> Vector2:
+        rads = math.radians(self.rotation)
+        cos = math.cos(rads)
+        sin = math.sin(rads)
+        return Vector2(cos, sin)
+    
+    def right(self) -> Vector2:
+        rads = math.radians(self.rotation)
+        cos = math.cos(rads)
+        sin = math.sin(rads)
+        return Vector2(-sin, cos)
 
     def carPoly(self) -> list[Vector2]:
-        top = self.pos.y+(self.length/2)
-        left = self.pos.x-(self.width/2)
-        bottom = self.pos.y-(self.length/2)
-        right = self.pos.x+(self.width/2)
-        return [Vector2(left,top),Vector2(right,top),Vector2(right,bottom),Vector2(left,bottom),Vector2(left,top)]
-
+        fwd = self.forward() * self.length/2
+        right = self.right() * self.width/2
+        right_bottom = self.pos + fwd + right
+        right_top = self.pos + fwd - right
+        left_top = self.pos - fwd - right
+        left_bottom = self.pos - fwd + right
+        return [left_top, right_top, right_bottom, left_bottom, left_top]
+    
     def draw(self):
         pygame.draw.rect(screen,'black',(0,0,screen.get_width(),170))
         pygame.draw.polygon(screen, 'red', self.carPoly(), width=0)
@@ -42,51 +57,40 @@ class Car:
             if not x_hit:
                 if i.x < 0:
                     self.vel.x = -self.vel.x/2
-                    self.pos.x = self.width / 2
+                    self.pos.x += 1
                     x_hit = True
                 if i.x > screen.get_width():
                     self.vel.x = -self.vel.x/2
-                    self.pos.x = screen.get_width() - self.width / 2
+                    self.pos.x -= 1
                     x_hit = True
             if not y_hit:
                 if i.y < 170:
                     self.vel.y = -self.vel.y/2
-                    self.pos.y = (self.length / 2) +170
+                    self.pos.y += 1
                     y_hit = True
                 if i.y > screen.get_height():
                     self.vel.y = -self.vel.y/2
-                    self.pos.y = (screen.get_height() - self.length / 2)
+                    self.pos.y -= 1
                     y_hit = True
 
     def tickInteractive(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
-            self.acc.y = -self.thrust
+            self.vel += self.forward()*self.thrust*DT
         if keys[pygame.K_s]:
-            self.acc.y = self.thrust
+            self.vel -= self.forward()*self.thrust*DT
         if keys[pygame.K_a]:
-            self.acc.x = -self.thrust
+            self.rotation -= 180*DT
         if keys[pygame.K_d]:
-            self.acc.x = self.thrust
+            self.rotation += 180*DT
         if keys[pygame.K_SPACE]:
             self.vel /= 1.1
-        
-        if (not keys[pygame.K_w]) and (not keys[pygame.K_s]):
-            self.acc.y = 0
-            self.vel.y *= 0.98
-        if (not keys[pygame.K_a]) and (not keys[pygame.K_d]):
-            self.acc.x = 0
-            self.vel.x *= 0.98
-
-        self.vel += self.acc*DT
+        self.vel *= 0.999
         self.pos += self.vel*DT
         self.collide()
 
-    #def tickAuto
 
-c = Car(mode,Vector2(1000,1000))
-
-
+c = Car(mode,Vector2(1000,1000),-90)
 
 while running:
     for event in pygame.event.get():
